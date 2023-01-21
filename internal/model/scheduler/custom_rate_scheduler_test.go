@@ -13,6 +13,47 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// Create a Standard Customer
+func getStandardCustomer(name string, phoneNumber string, cType customer.CustomerType) *customer.StandardCustomer {
+
+	return &customer.StandardCustomer{
+		Customer: customer.Customer{
+			FullName:    name,
+			PhoneNumber: phoneNumber,
+			Metadata: &customer.CustomerMetadata{
+				TicketNumber: 1,
+				Type:         customer.CustomerTypeStandard,
+				EntryTime:    time.Now().UTC(),
+			},
+		},
+	}
+}
+
+func getVIPCustomer(name string, phoneNumber string, cType customer.CustomerType) *customer.VIPCustomer {
+
+	return &customer.VIPCustomer{
+		Customer: customer.Customer{
+			FullName:    name,
+			PhoneNumber: phoneNumber,
+			Metadata: &customer.CustomerMetadata{
+				TicketNumber: 1,
+				Type:         customer.CustomerTypeVIP,
+				EntryTime:    time.Now().UTC(),
+			},
+		},
+	}
+}
+
+func getQueue(queueType queue.QueueType) *queue.Queue {
+	return &queue.Queue{
+		Id:       uuid.NewString(),
+		Elements: make(queue.CustomerQueue, 0),
+		Metadata: &queue.QueueMetadata{
+			Type: queueType,
+		},
+	}
+}
+
 func getCustomScheduler(queues []*queue.Queue) (*scheduler.CustomScheduler, error) {
 
 	// Create a Scheduler
@@ -44,118 +85,14 @@ func getCustomScheduler(queues []*queue.Queue) (*scheduler.CustomScheduler, erro
 	return p, nil
 }
 
-func TestCustomRateScheduler(t *testing.T) {
+func TestCustomRateSchedulerCheckInCustomer(t *testing.T) {
 
-	// Create a Standard Customer
-	standardCustomer1 := &customer.StandardCustomer{
-		Customer: customer.Customer{
-			FullName:    "Bob A",
-			PhoneNumber: "123456",
-			Metadata: &customer.CustomerMetadata{
-				TicketNumber: 1,
-				Type:         customer.CustomerTypeStandard,
-				EntryTime:    time.Now().UTC(),
-			},
-		},
-	}
+	standardCustomer1 := getStandardCustomer("Bob", "1234", customer.CustomerTypeStandard)
+	standardCustomer2 := getStandardCustomer("Cathy", "1234", customer.CustomerTypeStandard)
+	vipCustomer := getVIPCustomer("Alice", "1234", customer.CustomerTypeVIP)
 
-	standardCustomer2 := &customer.StandardCustomer{
-		Customer: customer.Customer{
-			FullName:    "Cathy K",
-			PhoneNumber: "123456",
-			Metadata: &customer.CustomerMetadata{
-				TicketNumber: 1,
-				Type:         customer.CustomerTypeStandard,
-				EntryTime:    time.Now().UTC(),
-			},
-		},
-	}
-
-	// Create a VIP Customer
-	vipCustomer := &customer.VIPCustomer{
-		Customer: customer.Customer{
-			FullName:    "Alice A",
-			PhoneNumber: "123456",
-			Metadata: &customer.CustomerMetadata{
-				TicketNumber: 1,
-				Type:         customer.CustomerTypeVIP,
-				EntryTime:    time.Now().UTC(),
-			},
-		},
-	}
-
-	vipCustomer2 := &customer.VIPCustomer{
-		Customer: customer.Customer{
-			FullName:    "VIPAlice B",
-			PhoneNumber: "123456",
-			Metadata: &customer.CustomerMetadata{
-				TicketNumber: 2,
-				Type:         customer.CustomerTypeVIP,
-				EntryTime:    time.Now().UTC(),
-			},
-		},
-	}
-
-	// Queues
-	standardQ := &queue.Queue{
-		Id:       uuid.NewString(),
-		Elements: make(queue.CustomerQueue, 0),
-		Metadata: &queue.QueueMetadata{
-			Type: queue.QueueTypeStandard,
-		},
-	}
-
-	priorityQ := &queue.Queue{
-		Id:       uuid.NewString(),
-		Elements: make(queue.CustomerQueue, 0),
-		Metadata: &queue.QueueMetadata{
-			Type: queue.QueueTypePriority,
-		},
-	}
-
-	t.Run("Succesfully Initializes Scheduler", func(t *testing.T) {
-		ctrl := gomock.NewController(t)
-		assert := assert.New(t)
-		defer ctrl.Finish()
-
-		schedulerMetadata := &scheduler.SchedulerMetadata{}
-
-		// Add Customers to Queues
-		standardQ.Add(&standardCustomer1.Customer)
-		priorityQ.Add(&vipCustomer.Customer)
-
-		// Create a Scheduler
-		schedulerQueues := make(map[queue.QueueType]*queue.Queue, 0)
-		schedulerQueues[queue.QueueTypeStandard] = standardQ
-		schedulerQueues[queue.QueueTypePriority] = priorityQ
-
-		schedulerMetadata.ShouldPollFromQueue = make(map[queue.QueueType]bool, 0)
-		schedulerMetadata.CurrentPollRemain = make(map[queue.QueueType]int, 0)
-		schedulerMetadata.QueuePollRate = make(map[queue.QueueType]int, 0)
-
-		schedulerMetadata.CurrentPollRemain[queue.QueueTypeStandard] = 1
-		schedulerMetadata.QueuePollRate[queue.QueueTypeStandard] = 1
-		schedulerMetadata.ShouldPollFromQueue[queue.QueueTypeStandard] = false
-
-		schedulerMetadata.QueuePollRate[queue.QueueTypePriority] = 2
-		schedulerMetadata.CurrentPollRemain[queue.QueueTypePriority] = 2
-		schedulerMetadata.ShouldPollFromQueue[queue.QueueTypePriority] = true
-
-		scheduler, err := scheduler.NewCustomScheduler(1, schedulerQueues, schedulerMetadata)
-
-		assert.NoError(err)
-		assert.NotNil(scheduler)
-		assert.Equal(scheduler.Id, 1)
-
-		assert.Equal(scheduler.Metadata.QueuePollRate[queue.QueueTypePriority], 2)
-		assert.Equal(scheduler.Metadata.ShouldPollFromQueue[queue.QueueTypePriority], true)
-		assert.Equal(scheduler.Metadata.CurrentPollRemain[queue.QueueTypePriority], 2)
-
-		assert.Equal(scheduler.Metadata.QueuePollRate[queue.QueueTypeStandard], 1)
-		assert.Equal(scheduler.Metadata.ShouldPollFromQueue[queue.QueueTypeStandard], false)
-		assert.Equal(scheduler.Metadata.CurrentPollRemain[queue.QueueTypeStandard], 1)
-
-	})
+	standardQ := getQueue(queue.QueueTypeStandard)
+	priorityQ := getQueue(queue.QueueTypePriority)
 
 	t.Run("Adds a customer to priority scheduler", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
@@ -188,9 +125,21 @@ func TestCustomRateScheduler(t *testing.T) {
 
 		assert.Equal(len(customScheduler.Queues), 2)
 		assert.Contains(customScheduler.Queues[queue.QueueTypeStandard].Elements[0].FullName, "Bob")
-		assert.Contains(customScheduler.Queues[queue.QueueTypeStandard].Elements[1].FullName, "Cathy K")
-		assert.Contains(customScheduler.Queues[queue.QueueTypePriority].Elements[0].FullName, "Alice A")
+		assert.Contains(customScheduler.Queues[queue.QueueTypeStandard].Elements[1].FullName, "Cathy")
+		assert.Contains(customScheduler.Queues[queue.QueueTypePriority].Elements[0].FullName, "Alice")
 	})
+
+}
+
+func TestCustomRateSchedulerGetNextCustomer(t *testing.T) {
+
+	standardCustomer1 := getStandardCustomer("Bob", "1234", customer.CustomerTypeStandard)
+	standardCustomer2 := getStandardCustomer("Cathy", "1234", customer.CustomerTypeStandard)
+	vipCustomer := getVIPCustomer("Alice", "1234", customer.CustomerTypeVIP)
+	vipCustomer2 := getVIPCustomer("VIPAlice", "1234", customer.CustomerTypeVIP)
+
+	standardQ := getQueue(queue.QueueTypeStandard)
+	priorityQ := getQueue(queue.QueueTypePriority)
 
 	t.Run("gets the next customer", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
@@ -241,11 +190,57 @@ func TestCustomRateScheduler(t *testing.T) {
 		if err != nil {
 			t.Error("error occured while popping from queue", err)
 		}
-		assert.Contains(c1.(*customer.Customer).FullName, "Alice A")
+		assert.Contains(c1.(*customer.Customer).FullName, "Alice")
 		assert.Contains(c2.(*customer.Customer).FullName, "VIPAlice")
 		assert.Contains(c3.(*customer.Customer).FullName, "Bob")
 
 		assert.Equal(len(customScheduler.Queues[queue.QueueTypePriority].Elements), 0)
 		assert.Equal(len(customScheduler.Queues[queue.QueueTypeStandard].Elements), 1)
 	})
+}
+
+func TestCustomRateSchedulerAdd(t *testing.T) {
+
+	standardQ := getQueue(queue.QueueTypeStandard)
+	priorityQ := getQueue(queue.QueueTypePriority)
+
+	t.Run("Succesfully Initializes Scheduler", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		assert := assert.New(t)
+		defer ctrl.Finish()
+
+		schedulerMetadata := &scheduler.SchedulerMetadata{}
+
+		// Create a Scheduler
+		schedulerQueues := make(map[queue.QueueType]*queue.Queue, 0)
+		schedulerQueues[queue.QueueTypeStandard] = standardQ
+		schedulerQueues[queue.QueueTypePriority] = priorityQ
+
+		schedulerMetadata.ShouldPollFromQueue = make(map[queue.QueueType]bool, 0)
+		schedulerMetadata.CurrentPollRemain = make(map[queue.QueueType]int, 0)
+		schedulerMetadata.QueuePollRate = make(map[queue.QueueType]int, 0)
+
+		schedulerMetadata.CurrentPollRemain[queue.QueueTypeStandard] = 1
+		schedulerMetadata.QueuePollRate[queue.QueueTypeStandard] = 1
+		schedulerMetadata.ShouldPollFromQueue[queue.QueueTypeStandard] = false
+
+		schedulerMetadata.QueuePollRate[queue.QueueTypePriority] = 2
+		schedulerMetadata.CurrentPollRemain[queue.QueueTypePriority] = 2
+		schedulerMetadata.ShouldPollFromQueue[queue.QueueTypePriority] = true
+
+		scheduler, err := scheduler.NewCustomScheduler(1, schedulerQueues, schedulerMetadata)
+
+		assert.NoError(err)
+		assert.NotNil(scheduler)
+		assert.Equal(scheduler.Id, 1)
+
+		assert.Equal(scheduler.Metadata.QueuePollRate[queue.QueueTypePriority], 2)
+		assert.Equal(scheduler.Metadata.ShouldPollFromQueue[queue.QueueTypePriority], true)
+		assert.Equal(scheduler.Metadata.CurrentPollRemain[queue.QueueTypePriority], 2)
+
+		assert.Equal(scheduler.Metadata.QueuePollRate[queue.QueueTypeStandard], 1)
+		assert.Equal(scheduler.Metadata.ShouldPollFromQueue[queue.QueueTypeStandard], false)
+		assert.Equal(scheduler.Metadata.CurrentPollRemain[queue.QueueTypeStandard], 1)
+	})
+
 }

@@ -94,7 +94,7 @@ func (sc *CustomScheduler) updateScheduler(polledQ queue.QueueType) error {
 		sc.Metadata.ShouldPollFromQueue[polledQ] = false
 
 		// Update the nextQueue to true so that we can poll from it
-		nextQueueIndex := (index + 1) % len(polledQ)
+		nextQueueIndex := (index + 1) % len(customerAttendingOrder)
 		sc.Metadata.ShouldPollFromQueue[customerAttendingOrder[nextQueueIndex]] = true
 	}
 
@@ -126,7 +126,7 @@ func (sc *CustomScheduler) GetNextCustomer(context.Context) (interface{}, error)
 	}
 
 	// Set the count Metadata to len of elements
-	sc.Metadata.CurrentPollRemain[queueToPollFrom] = len(queue.Elements)
+	sc.Metadata.CurrentPollRemain[queueToPollFrom] -= 1
 
 	sc.updateScheduler(queueToPollFrom)
 	return customer, nil
