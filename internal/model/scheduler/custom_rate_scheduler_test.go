@@ -196,6 +196,53 @@ func TestCustomRateSchedulerGetNextCustomer(t *testing.T) {
 
 		assert.Equal(len(customScheduler.Queues[queue.QueueTypePriority].Elements), 0)
 		assert.Equal(len(customScheduler.Queues[queue.QueueTypeStandard].Elements), 1)
+
+		t.Cleanup(func() {
+			customScheduler = nil
+		})
+	})
+
+	t.Run("fails when trying to get from queue which has no customer", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		assert := assert.New(t)
+		defer ctrl.Finish()
+
+		ctx := context.Background()
+
+		customScheduler, err := getCustomScheduler([]*queue.Queue{standardQ, priorityQ})
+
+		// asserts to make sure we have the right scheduler
+		assert.Nil(err)
+		assert.NotNil(customScheduler)
+		assert.Equal(len(customScheduler.Queues), 2)
+
+		customScheduler, err = customScheduler.CheckInCustomer(ctx, *standardCustomer1)
+		if err != nil {
+			t.Error("error occured while checking in a standard customer", err)
+		}
+
+		customScheduler, err = customScheduler.CheckInCustomer(ctx, *standardCustomer2)
+		if err != nil {
+			t.Error("error occured while checking in a standard customer", err)
+		}
+
+		// check this
+		customScheduler, err = customScheduler.CheckInCustomer(ctx, *vipCustomer)
+		if err != nil {
+			t.Error("error occured while checking in a vip customer", err)
+		}
+
+		c1, err := customScheduler.GetNextCustomer(ctx)
+		if err != nil {
+			t.Error("error occured while popping from queue", err)
+		}
+
+		_, err = customScheduler.GetNextCustomer(ctx)
+
+		assert.NotNil(err)
+		assert.Contains(err.Error(), "cannot pop from empty queue")
+		assert.Contains(c1.(*customer.Customer).FullName, "Alice")
+
 	})
 }
 
