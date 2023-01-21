@@ -6,7 +6,7 @@ import (
 	"github.com/omkar.sunthankar/servicescheduler/internal/model/queue"
 )
 
-type SchedulerQueues map[queue.QueueType]interface{}
+type SchedulerQueues map[queue.QueueType]*queue.Queue
 
 type SchedulerI interface {
 	CheckInCustomer(*context.Context, interface{}) (interface{}, error)
