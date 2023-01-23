@@ -11,66 +11,55 @@ import (
 	customer "github.com/omkar.sunthankar/servicescheduler/internal/model/customer"
 )
 
-// MockQueue is a mock of Queue interface.
-type MockQueue struct {
+// MockQueueI is a mock of QueueI interface.
+type MockQueueI struct {
 	ctrl     *gomock.Controller
-	recorder *MockQueueMockRecorder
+	recorder *MockQueueIMockRecorder
 }
 
-// MockQueueMockRecorder is the mock recorder for MockQueue.
-type MockQueueMockRecorder struct {
-	mock *MockQueue
+// MockQueueIMockRecorder is the mock recorder for MockQueueI.
+type MockQueueIMockRecorder struct {
+	mock *MockQueueI
 }
 
-// NewMockQueue creates a new mock instance.
-func NewMockQueue(ctrl *gomock.Controller) *MockQueue {
-	mock := &MockQueue{ctrl: ctrl}
-	mock.recorder = &MockQueueMockRecorder{mock}
+// NewMockQueueI creates a new mock instance.
+func NewMockQueueI(ctrl *gomock.Controller) *MockQueueI {
+	mock := &MockQueueI{ctrl: ctrl}
+	mock.recorder = &MockQueueIMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockQueue) EXPECT() *MockQueueMockRecorder {
+func (m *MockQueueI) EXPECT() *MockQueueIMockRecorder {
 	return m.recorder
 }
 
 // Add mocks base method.
-func (m *MockQueue) Add(c *customer.Customer) {
+func (m *MockQueueI) Add(c *customer.Customer) (*customer.Customer, error) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "Add", c)
+	ret := m.ctrl.Call(m, "Add", c)
+	ret0, _ := ret[0].(*customer.Customer)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // Add indicates an expected call of Add.
-func (mr *MockQueueMockRecorder) Add(c interface{}) *gomock.Call {
+func (mr *MockQueueIMockRecorder) Add(c interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Add", reflect.TypeOf((*MockQueue)(nil).Add), c)
-}
-
-// Len mocks base method.
-func (m *MockQueue) Len() int {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Len")
-	ret0, _ := ret[0].(int)
-	return ret0
-}
-
-// Len indicates an expected call of Len.
-func (mr *MockQueueMockRecorder) Len() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Len", reflect.TypeOf((*MockQueue)(nil).Len))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Add", reflect.TypeOf((*MockQueueI)(nil).Add), c)
 }
 
 // Pop mocks base method.
-func (m *MockQueue) Pop() (interface{}, error) {
+func (m *MockQueueI) Pop() (*customer.Customer, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Pop")
-	ret0, _ := ret[0].(interface{})
+	ret0, _ := ret[0].(*customer.Customer)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Pop indicates an expected call of Pop.
-func (mr *MockQueueMockRecorder) Pop() *gomock.Call {
+func (mr *MockQueueIMockRecorder) Pop() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Pop", reflect.TypeOf((*MockQueue)(nil).Pop))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Pop", reflect.TypeOf((*MockQueueI)(nil).Pop))
 }

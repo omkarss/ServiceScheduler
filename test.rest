@@ -1,0 +1,41 @@
+
+### GET REquest
+
+POST http://localhost:8080/check-in-customer
+Content-Type: application/json
+
+{
+   	"FullName":    "Shivani",
+	"PhoneNumber": "12345",
+	"Type":        "Priority"
+}
+
+###
+POST http://localhost:8080/check-in-customer
+Content-Type: application/json
+
+{
+   	"FullName":    "Siddhi",
+	"PhoneNumber": "12345",
+	"Type":        "Priority"
+}
+
+###
+POST http://localhost:8080/check-in-customer
+Content-Type: application/json
+
+{
+   	"FullName":    "Omkar",
+	"PhoneNumber": "12345",
+	"Type":        "Standard"
+}
+
+###
+GET http://localhost:8080/get-next-customer-schedulerA
+
+###
+GET http://localhost:8080/get-next-customer-schedulerA
+
+###
+GET http://localhost:8080/get-next-customer-schedulerB
+K

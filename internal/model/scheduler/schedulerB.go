@@ -15,45 +15,21 @@ type SchedulerMetadata struct {
 }
 
 type CustomScheduler struct {
-	Id       int
-	Queues   SchedulerQueues
-	Metadata *SchedulerMetadata
+	Id           int
+	TicketNumber int
+	Metadata     *SchedulerMetadata
 }
 
-func NewCustomScheduler(id int, q SchedulerQueues, metadata *SchedulerMetadata) (*CustomScheduler, error) {
+func NewCustomScheduler(id int, metadata *SchedulerMetadata) (*CustomScheduler, error) {
 	return &CustomScheduler{
 		Id:       id,
-		Queues:   q,
 		Metadata: metadata,
 	}, nil
 }
 
-func (sc *CustomScheduler) CheckInCustomer(ctx context.Context, c interface{}) (*CustomScheduler, error) {
+func (sc *CustomScheduler) AddQueueToScheduler(ctx context.Context, c interface{}) (*CustomScheduler, error) {
 
-	switch c.(type) {
-	case customer.StandardCustomer:
-		sCustomer := c.(customer.StandardCustomer)
-		// Check if this key exist in map
-		// TODO: always adding to adding first queue, but we can extend this multiple queues
-		sq := sc.Queues[queue.QueueTypeStandard]
-
-		sq.Add(&sCustomer.Customer)
-		sc.Queues[queue.QueueTypeStandard] = sq
-
-	case customer.VIPCustomer:
-		sCustomer := c.(customer.VIPCustomer)
-		// Check if this key exist in map
-		// TODO: always adding to adding first queue, but we can extend this multiple queues
-		vq := sc.Queues[queue.QueueTypePriority]
-
-		vq.Add(&sCustomer.Customer)
-		sc.Queues[queue.QueueTypePriority] = vq
-
-	default:
-		return nil, fmt.Errorf("customer type is unknown")
-	}
-
-	return sc, nil
+	return nil, nil
 }
 
 func indexOf(queueType queue.QueueType) int {
@@ -65,10 +41,6 @@ func indexOf(queueType queue.QueueType) int {
 	}
 
 	return -1
-}
-func (sc *CustomScheduler) AddQueueToScheduler(ctx *context.Context, q interface{}) (*CustomScheduler, error) {
-	// TODO : To add a queue to scheduler : Should be handled by admin
-	return sc, nil
 }
 
 func getQueueToPollFrom(sc *CustomScheduler) queue.QueueType {
@@ -101,31 +73,27 @@ func (sc *CustomScheduler) updateScheduler(polledQ queue.QueueType) error {
 	return nil
 }
 
-func (sc *CustomScheduler) GetNextCustomer(context.Context) (interface{}, error) {
+func (sc *CustomScheduler) GetNextCustomer(ctx context.Context, queueMap map[queue.QueueType]*queue.Queue) (interface{}, error) {
 	// there should be only 1 queue to poll from
 	// Pop From Queue
 	// Update the Queue Metadata
-	queueToPollFrom := getQueueToPollFrom(sc)
-	if queueToPollFrom == "" {
-		return nil, fmt.Errorf("issue while polling from queue")
-	}
-
 	var (
 		customer *customer.Customer
 		err      error
 	)
 
-	queue, ok := sc.Queues[queueToPollFrom]
-	if !ok {
-		return nil, fmt.Errorf("cannot get queue")
+	queueToPollFrom := getQueueToPollFrom(sc)
+	if queueToPollFrom == "" {
+		return nil, fmt.Errorf("issue while polling from queue")
 	}
 
+	queue := queueMap[queueToPollFrom]
 	customer, err = queue.Pop()
 	if err != nil {
 		return nil, err
 	}
 
-	// Set the count Metadata to len of elements
+	// Decrease the poll by 1
 	sc.Metadata.CurrentPollRemain[queueToPollFrom] -= 1
 
 	sc.updateScheduler(queueToPollFrom)

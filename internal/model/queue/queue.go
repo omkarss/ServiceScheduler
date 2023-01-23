@@ -26,8 +26,8 @@ type Queue struct {
 }
 
 type QueueI interface {
-	Add(c *customer.Customer) (interface{}, error)
-	Pop() interface{}
+	Add(c *customer.Customer) (*customer.Customer, error)
+	Pop() (*customer.Customer, error)
 }
 
 func NewQueue(ctx context.Context, id string, qtype QueueType) (*Queue, error) {
@@ -46,6 +46,7 @@ func (q *Queue) Add(c *customer.Customer) {
 	currQueue = append(currQueue, c)
 
 	q.Elements = currQueue
+
 }
 
 func (q *Queue) Pop() (c *customer.Customer, err error) {

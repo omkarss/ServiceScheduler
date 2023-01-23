@@ -1,21 +1,33 @@
-package main
+package server_test
 
 import (
 	"context"
 	"log"
-	"net/http"
+	"testing"
 
+	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/omkar.sunthankar/servicescheduler/internal/model/queue"
 	"github.com/omkar.sunthankar/servicescheduler/internal/model/scheduler"
 	"github.com/omkar.sunthankar/servicescheduler/internal/server"
+	mock_queue "github.com/omkar.sunthankar/servicescheduler/mocks/queue"
+	mock_scheduler "github.com/omkar.sunthankar/servicescheduler/mocks/scheduler"
+	"github.com/stretchr/testify/suite"
 )
 
-func main() {
+type TestServerSuite struct {
+	suite.Suite
 
+	ctrl                     *gomock.Controller
+	mock_vip_first_scheduler *mock_scheduler.MockSchedulerI
+	mock_custom_scheduler    *mock_scheduler.MockSchedulerI
+	mock_queue               *mock_queue.MockQueueI
+	server                   *server.Server
+}
+
+func InitServer() *server.Server {
 	ctx := context.Background()
 
-	//  Create a Queues
 	queueS, err := queue.NewQueue(ctx, uuid.NewString(), queue.QueueTypeStandard)
 	if err != nil {
 		log.Fatal("cannot create standard queue")
@@ -61,15 +73,27 @@ func main() {
 	q[queue.QueueTypeStandard] = queueS
 	q[queue.QueueTypePriority] = queueP
 
-	// Assign to server struct
 	s := server.NewServer(
 		VIPFirstSceduler,
 		customScheduler,
 		q,
 	)
+	return s
+}
 
-	if err := http.ListenAndServe(":8080", s); err != nil {
-		log.Fatal(err)
-	}
+func (s *TestServerSuite) SetupTest() {
+	s.ctrl = gomock.NewController(s.T())
+	s.server = InitServer()
+	s.mock_queue = mock_queue.NewMockQueueI(s.ctrl)
+	s.mock_vip_first_scheduler = mock_scheduler.NewMockSchedulerI(s.ctrl)
+	s.mock_custom_scheduler = mock_scheduler.NewMockSchedulerI(s.ctrl)
+}
+func (s *TestServerSuite) AfterTest() {}
 
+func (s *TestServerSuite) TearDownTest() {
+	s.ctrl.Finish()
+}
+
+func TestServerHanlderSuite(t *testing.T) {
+	suite.Run(t, new(TestServerSuite))
 }
