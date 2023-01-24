@@ -1,0 +1,104 @@
+Output 
+
+---------------------------------------------------------------------------
+Checking in customers
+{
+  "FullName": "A",
+  "PhoneNumber": "xxxx",
+  "Type": "Priority",
+  "TicketNumber": 1
+}
+
+{
+  "FullName": "B",
+  "PhoneNumber": "xxxx",
+  "Type": "Priority",
+  "TicketNumber": 2
+}
+
+{
+  "FullName": "C",
+  "PhoneNumber": "xxxxx",
+  "Type": "Priority",
+  "TicketNumber": 3
+}
+
+{
+  "FullName": "D",
+  "PhoneNumber": "xxxxx",
+  "Type": "Standard",
+  "TicketNumber": 4
+}
+
+{
+  "FullName": "E",
+  "PhoneNumber": "xxxxx",
+  "Type": "Standard",
+  "TicketNumber": 5
+}
+
+
+{
+  "FullName": "F",
+  "PhoneNumber": "xxxxx",
+  "Type": "Standard",
+  "TicketNumber": 6
+}
+
+---------------------------------------------------------------------------
+
+{"FullName":"A","PhoneNumber":"xxxx","Type":"Priority","TicketNumber":1}
+{"FullName":"B","PhoneNumber":"xxxx","Type":"Priority","TicketNumber":2}
+{"FullName":"C","PhoneNumber":"xxxxx","Type":"Priority","TicketNumber":3}
+{"FullName":"D","PhoneNumber":"xxxxx","Type":"Priority","TicketNumber":4}
+---------------------------------------------------------------------------
+
+{"FullName":"E","PhoneNumber":"xxxxx","Type":"Standard","TicketNumber":5}
+{"FullName":"F","PhoneNumber":"xxxxx","Type":"Standard","TicketNumber":6}
+
+---------------------------------------------------------------------------
+
+{
+  "FullName": "A",
+  "PhoneNumber": "xxxx",
+  "Type": "Priority",
+  "TicketNumber": 1
+}
+
+{
+  "FullName": "B",
+  "PhoneNumber": "xxxx",
+  "Type": "Priority",
+  "TicketNumber": 2
+}
+
+{
+  "FullName": "E",
+  "PhoneNumber": "xxxxx",
+  "Type": "Standard",
+  "TicketNumber": 5
+}
+
+{
+  "FullName": "C",
+  "PhoneNumber": "xxxxx",
+  "Type": "Priority",
+  "TicketNumber": 3
+}
+
+{
+  "FullName": "D",
+  "PhoneNumber": "xxxxx",
+  "Type": "Priority",
+  "TicketNumber": 4
+}
+
+{
+  "FullName": "F",
+  "PhoneNumber": "xxxxx",
+  "Type": "Standard",
+  "TicketNumber": 6
+}
+
+---------------------------------------------------------------------------
+no customer to attend

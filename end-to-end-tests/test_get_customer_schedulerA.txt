@@ -1,0 +1,87 @@
+Output 
+
+---------------------------------------------------------------------------
+Checking in customers
+{
+  "FullName": "A",
+  "PhoneNumber": "xxxx",
+  "Type": "Priority",
+  "TicketNumber": 1
+}
+
+{
+  "FullName": "B",
+  "PhoneNumber": "xxxx",
+  "Type": "Priority",
+  "TicketNumber": 2
+}
+
+{
+  "FullName": "C",
+  "PhoneNumber": "xxxxx",
+  "Type": "Priority",
+  "TicketNumber": 3
+}
+
+{
+  "FullName": "D",
+  "PhoneNumber": "xxxxx",
+  "Type": "Standard",
+  "TicketNumber": 4
+}
+
+---------------------------------------------------------------------------
+
+{"FullName":"A","PhoneNumber":"xxxx","Type":"Priority","TicketNumber":1}
+{"FullName":"B","PhoneNumber":"xxxx","Type":"Priority","TicketNumber":2}
+{"FullName":"C","PhoneNumber":"xxxxx","Type":"Priority","TicketNumber":3}
+
+---------------------------------------------------------------------------
+
+{
+  "FullName": "D",
+  "PhoneNumber": "xxxxx",
+  "Type": "Standard",
+  "TicketNumber": 4
+}
+
+---------------------------------------------------------------------------
+
+{
+  "FullName": "A",
+  "PhoneNumber": "xxxx",
+  "Type": "Priority",
+  "TicketNumber": 1
+}
+
+{
+  "FullName": "B",
+  "PhoneNumber": "xxxx",
+  "Type": "Priority",
+  "TicketNumber": 2
+}
+
+{
+  "FullName": "C",
+  "PhoneNumber": "xxxxx",
+  "Type": "Priority",
+  "TicketNumber": 3
+}
+
+{
+  "FullName": "D",
+  "PhoneNumber": "xxxxx",
+  "Type": "Standard",
+  "TicketNumber": 4
+}
+
+---------------------------------------------------------------------------
+
+no customer available to attend
+
+---------------------------------------------------------------------------
+
+Bad Request: Invalid Request: Error validating FullName
+
+---------------------------------------------------------------------------
+

@@ -1,0 +1,75 @@
+
+
+POST http://localhost:8080/check-in-customer
+Content-Type: application/json
+
+{
+   	"FullName":    "A",
+	"PhoneNumber": "xxxx",
+	"Type":        "Priority"
+}
+
+###
+POST http://localhost:8080/check-in-customer
+Content-Type: application/json
+
+{
+   	"FullName":    "B",
+	"PhoneNumber": "xxxx",
+	"Type":        "Priority"
+}
+
+
+###
+POST http://localhost:8080/check-in-customer
+Content-Type: application/json
+
+{
+   	"FullName":    "C",
+	"PhoneNumber": "xxxxx",
+	"Type":        "Priority"
+}
+
+###
+POST http://localhost:8080/check-in-customer
+Content-Type: application/json
+
+{
+   	"FullName":    "D",
+	"PhoneNumber": "xxxxx",
+	"Type":        "Standard"
+}
+
+###
+GET http://localhost:8080/get-all-vip-customers
+
+###
+GET http://localhost:8080/get-all-standard-customers
+
+###
+GET http://localhost:8080/get-next-customer-schedulerA
+
+
+###
+GET http://localhost:8080/get-next-customer-schedulerA
+
+
+###
+GET http://localhost:8080/get-next-customer-schedulerA
+
+
+###
+GET http://localhost:8080/get-next-customer-schedulerA
+
+###
+POST http://localhost:8080/check-in-customer
+Content-Type: application/json
+
+{
+   	"FullNam":    "B",
+	"PhoneNumber": "xxxx",
+	"Type":        "Priority"
+}
+
+
+

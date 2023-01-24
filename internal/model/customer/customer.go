@@ -1,61 +1,31 @@
 package customer
 
 import (
-	"context"
 	"fmt"
 	"time"
 )
 
-type CustomerType int
+type CustomerType string
 
 const (
-	CustomerTypeStandard CustomerType = iota
-	CustomerTypeVIP
+	CustomerTypeStandard CustomerType = "Standard"
+	CustomerTypeVIP      CustomerType = "Priority"
 )
 
 type CustomerMetadata struct {
-	TicketNumber int
-	Type         CustomerType
-	EntryTime    time.Time
+	TicketNumber int          `json:"TicketNumber" validate:"omitempty"`
+	Type         CustomerType `json:"Type" validate:"required" binding:"required"`
+	EntryTime    time.Time    `json:"EntryTime" validate:"omitempty"`
 }
 
 type Customer struct {
-	FullName    string
-	PhoneNumber string
-	Metadata    *CustomerMetadata
+	FullName    string            `json:"FullName" validate:"required" binding:"required"`
+	PhoneNumber string            `json:"PhoneNumber" validate:"required" binding:"required"`
+	Metadata    *CustomerMetadata `json:"Metadata" validate:"required" binding:"required"`
 }
 
 type CustomerI interface {
 	GetDetails() (interface{}, error)
-}
-
-func NewCustomer(ctx context.Context, fullName string, phoneNumber string, customerType CustomerType, ticketNumber int) (interface{}, error) {
-
-	switch customerType {
-	case CustomerTypeStandard:
-		return &StandardCustomer{Customer{
-			FullName:    fullName,
-			PhoneNumber: phoneNumber,
-			Metadata: &CustomerMetadata{
-				TicketNumber: ticketNumber,
-				Type:         customerType,
-				EntryTime:    time.Now().UTC(),
-			},
-		}}, nil
-
-	case CustomerTypeVIP:
-		return &VIPCustomer{Customer{
-			FullName:    fullName,
-			PhoneNumber: phoneNumber,
-			Metadata: &CustomerMetadata{
-				TicketNumber: ticketNumber,
-				Type:         customerType,
-				EntryTime:    time.Now().UTC(),
-			},
-		}}, nil
-	default:
-		return fmt.Errorf("invalid customer"), nil
-	}
 }
 
 func (*Customer) GetDetails(*Customer) (*Customer, error) {
