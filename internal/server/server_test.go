@@ -4,9 +4,11 @@ import (
 	"context"
 	"log"
 	"testing"
+	"time"
 
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
+	"github.com/omkar.sunthankar/servicescheduler/internal/model/customer"
 	"github.com/omkar.sunthankar/servicescheduler/internal/model/queue"
 	"github.com/omkar.sunthankar/servicescheduler/internal/model/scheduler"
 	"github.com/omkar.sunthankar/servicescheduler/internal/server"
@@ -23,6 +25,46 @@ type TestServerSuite struct {
 	mock_custom_scheduler    *mock_scheduler.MockSchedulerI
 	mock_queue               *mock_queue.MockQueueI
 	server                   *server.Server
+}
+
+func getQueue(queueType queue.QueueType) *queue.Queue {
+	return &queue.Queue{
+		Id:       uuid.NewString(),
+		Elements: make(queue.CustomerQueue, 0),
+		Metadata: &queue.QueueMetadata{
+			Type: queueType,
+		},
+	}
+}
+
+func getStandardCustomer(name string, phoneNumber string, cType customer.CustomerType) *customer.StandardCustomer {
+
+	return &customer.StandardCustomer{
+		Customer: customer.Customer{
+			FullName:    name,
+			PhoneNumber: phoneNumber,
+			Metadata: &customer.CustomerMetadata{
+				TicketNumber: 1,
+				Type:         customer.CustomerTypeStandard,
+				EntryTime:    time.Now().UTC(),
+			},
+		},
+	}
+}
+
+func getVIPCustomer(name string, phoneNumber string, cType customer.CustomerType) *customer.VIPCustomer {
+
+	return &customer.VIPCustomer{
+		Customer: customer.Customer{
+			FullName:    name,
+			PhoneNumber: phoneNumber,
+			Metadata: &customer.CustomerMetadata{
+				TicketNumber: 1,
+				Type:         customer.CustomerTypeVIP,
+				EntryTime:    time.Now().UTC(),
+			},
+		},
+	}
 }
 
 func InitServer() *server.Server {
@@ -44,7 +86,7 @@ func InitServer() *server.Server {
 	schedulerQueues[queue.QueueTypeStandard] = queueS
 	schedulerQueues[queue.QueueTypePriority] = queueP
 
-	VIPFirstSceduler, err := scheduler.NewVIPFirstSceduler(1)
+	SchedulerTypeA, err := scheduler.NewSchedulerTypeA(1)
 	if err != nil {
 		log.Fatal("Cannot create VIP scheduler")
 	}
@@ -64,7 +106,7 @@ func InitServer() *server.Server {
 	schedulerMetadata.CurrentPollRemain[queue.QueueTypePriority] = 2
 	schedulerMetadata.ShouldPollFromQueue[queue.QueueTypePriority] = true
 
-	customScheduler, err := scheduler.NewCustomScheduler(1, schedulerMetadata)
+	SchedulerTypeB, err := scheduler.NewSchedulerTypeB(1, schedulerMetadata)
 	if err != nil {
 		log.Fatal("Cannot create custom scheduler")
 	}
@@ -74,8 +116,8 @@ func InitServer() *server.Server {
 	q[queue.QueueTypePriority] = queueP
 
 	s := server.NewServer(
-		VIPFirstSceduler,
-		customScheduler,
+		SchedulerTypeA,
+		SchedulerTypeB,
 		q,
 	)
 	return s
@@ -88,6 +130,7 @@ func (s *TestServerSuite) SetupTest() {
 	s.mock_vip_first_scheduler = mock_scheduler.NewMockSchedulerI(s.ctrl)
 	s.mock_custom_scheduler = mock_scheduler.NewMockSchedulerI(s.ctrl)
 }
+
 func (s *TestServerSuite) AfterTest() {}
 
 func (s *TestServerSuite) TearDownTest() {

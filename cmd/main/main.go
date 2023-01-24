@@ -11,6 +11,8 @@ import (
 	"github.com/omkar.sunthankar/servicescheduler/internal/server"
 )
 
+const port = ":8080"
+
 func main() {
 
 	ctx := context.Background()
@@ -32,7 +34,7 @@ func main() {
 	schedulerQueues[queue.QueueTypeStandard] = queueS
 	schedulerQueues[queue.QueueTypePriority] = queueP
 
-	VIPFirstSceduler, err := scheduler.NewVIPFirstSceduler(1)
+	SchedulerTypeA, err := scheduler.NewSchedulerTypeA(1)
 	if err != nil {
 		log.Fatal("Cannot create VIP scheduler")
 	}
@@ -52,7 +54,7 @@ func main() {
 	schedulerMetadata.CurrentPollRemain[queue.QueueTypePriority] = 2
 	schedulerMetadata.ShouldPollFromQueue[queue.QueueTypePriority] = true
 
-	customScheduler, err := scheduler.NewCustomScheduler(1, schedulerMetadata)
+	SchedulerTypeB, err := scheduler.NewSchedulerTypeB(1, schedulerMetadata)
 	if err != nil {
 		log.Fatal("Cannot create custom scheduler")
 	}
@@ -63,12 +65,12 @@ func main() {
 
 	// Assign to server struct
 	s := server.NewServer(
-		VIPFirstSceduler,
-		customScheduler,
+		SchedulerTypeA,
+		SchedulerTypeB,
 		q,
 	)
 
-	if err := http.ListenAndServe(":8080", s); err != nil {
+	if err := http.ListenAndServe(port, s); err != nil {
 		log.Fatal(err)
 	}
 

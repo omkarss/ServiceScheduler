@@ -7,7 +7,7 @@ import (
 	"github.com/omkar.sunthankar/servicescheduler/internal/model/customer"
 )
 
-func SerializeCustomer(customer customer.Customer) ([]byte, error) {
+func SerializeCustomer(customer *customer.Customer) ([]byte, error) {
 	/*
 		{
 		    "FullName" : "Omkar",

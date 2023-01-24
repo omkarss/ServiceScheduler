@@ -27,7 +27,7 @@ Content-Type: application/json
 {
    	"FullName":    "Omkar",
 	"PhoneNumber": "12345",
-	"Type":        "Standard"
+	"Typ":        "Standard"
 }
 
 ###
@@ -38,4 +38,10 @@ GET http://localhost:8080/get-next-customer-schedulerA
 
 ###
 GET http://localhost:8080/get-next-customer-schedulerB
-K
+
+
+###
+GET http://localhost:8080/get-all-vip-customers
+
+###
+GET http://localhost:8080/get-all-standard-customers

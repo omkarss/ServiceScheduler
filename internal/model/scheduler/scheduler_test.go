@@ -19,16 +19,16 @@ type SchedulerSuite struct {
 	ctrl       *gomock.Controller
 	mock_queue *mock_queue.MockQueueI
 	queues     map[queue.QueueType]*queue.Queue
-	schedulerA *scheduler.VIPFirstSceduler
-	schedulerB *scheduler.CustomScheduler
+	schedulerA *scheduler.SchedulerTypeA
+	schedulerB *scheduler.SchedulerTypeB
 }
 
 func (s *SchedulerSuite) SetupTest() {
 	s.ctrl = gomock.NewController(s.T())
 	s.mock_queue = mock_queue.NewMockQueueI(s.ctrl)
 	s.queues = make(map[queue.QueueType]*queue.Queue, 0)
-	s.schedulerA, _ = scheduler.NewVIPFirstSceduler(1)
-	s.schedulerB, _ = scheduler.NewCustomScheduler(1, nil)
+	s.schedulerA, _ = scheduler.NewSchedulerTypeA(1)
+	s.schedulerB, _ = scheduler.NewSchedulerTypeB(1, getSchedulerMetadata())
 }
 
 func (s *SchedulerSuite) SetupIndividualTest() {
@@ -37,6 +37,24 @@ func (s *SchedulerSuite) SetupIndividualTest() {
 
 func (s *SchedulerSuite) AfterTest() {
 	s.queues = nil
+}
+
+func getSchedulerMetadata() *scheduler.SchedulerMetadata {
+	schedulerMetadata := &scheduler.SchedulerMetadata{}
+
+	schedulerMetadata.ShouldPollFromQueue = make(map[queue.QueueType]bool, 0)
+	schedulerMetadata.CurrentPollRemain = make(map[queue.QueueType]int, 0)
+	schedulerMetadata.QueuePollRate = make(map[queue.QueueType]int, 0)
+
+	schedulerMetadata.CurrentPollRemain[queue.QueueTypeStandard] = 1
+	schedulerMetadata.QueuePollRate[queue.QueueTypeStandard] = 1
+	schedulerMetadata.ShouldPollFromQueue[queue.QueueTypeStandard] = false
+
+	schedulerMetadata.QueuePollRate[queue.QueueTypePriority] = 2
+	schedulerMetadata.CurrentPollRemain[queue.QueueTypePriority] = 2
+	schedulerMetadata.ShouldPollFromQueue[queue.QueueTypePriority] = true
+
+	return schedulerMetadata
 }
 
 func getQueue(qT queue.QueueType) *queue.Queue {

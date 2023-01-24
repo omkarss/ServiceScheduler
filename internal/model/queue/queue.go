@@ -50,6 +50,7 @@ func (q *Queue) Add(c *customer.Customer) {
 }
 
 func (q *Queue) Pop() (c *customer.Customer, err error) {
+
 	currQueue := q.Elements
 	len := len(currQueue)
 	if len == 0 {

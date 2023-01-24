@@ -2,6 +2,7 @@ package deserializer
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 
@@ -51,5 +52,5 @@ func getType(s string) (customer.CustomerType, error) {
 
 	}
 
-	return "", nil
+	return "", fmt.Errorf("invalid customerType")
 }

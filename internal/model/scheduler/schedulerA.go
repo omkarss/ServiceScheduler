@@ -8,25 +8,25 @@ import (
 	"github.com/omkar.sunthankar/servicescheduler/internal/model/queue"
 )
 
-type VIPFirstSceduler struct {
+type SchedulerTypeA struct {
 	Id           int
 	TicketNumber int
 }
 
-func NewVIPFirstSceduler(id int) (*VIPFirstSceduler, error) {
+func NewSchedulerTypeA(id int) (*SchedulerTypeA, error) {
 
-	return &VIPFirstSceduler{
+	return &SchedulerTypeA{
 		Id: id,
 	}, nil
 }
 
-func (sc *VIPFirstSceduler) GetNextTicketNumber(ctx context.Context) int {
+func (sc *SchedulerTypeA) GetNextTicketNumber(ctx context.Context) int {
 
 	sc.TicketNumber = sc.TicketNumber + 1
 	return sc.TicketNumber
 }
 
-func (sc *VIPFirstSceduler) GetNextCustomer(ctx context.Context, queueMap map[queue.QueueType]*queue.Queue) (*customer.Customer, error) {
+func (sc *SchedulerTypeA) GetNextCustomer(ctx context.Context, queueMap map[queue.QueueType]*queue.Queue) (*customer.Customer, error) {
 
 	var c *customer.Customer
 	var err error
@@ -35,19 +35,22 @@ func (sc *VIPFirstSceduler) GetNextCustomer(ctx context.Context, queueMap map[qu
 	sq := queueMap[queue.QueueTypeStandard]
 	pq := queueMap[queue.QueueTypePriority]
 
-	if len(pq.Elements) > 0 {
+	if len(pq.Elements) > 0 || len(sq.Elements) > 0 {
+		if len(pq.Elements) > 0 {
+			c, err = pq.Pop()
+			if err != nil {
+				return nil, err
+			}
+		} else if len(sq.Elements) > 0 {
+			c, err = sq.Pop()
+			if err != nil {
+				return nil, err
+			}
 
-		c, err = pq.Pop()
-		if err != nil {
-			return nil, err
-		}
-	} else if len(sq.Elements) > 0 {
-		c, err = sq.Pop()
-		if err != nil {
-			return nil, err
 		}
 	} else {
 		return nil, fmt.Errorf("no customer available to attend")
 	}
 	return c, nil
+
 }

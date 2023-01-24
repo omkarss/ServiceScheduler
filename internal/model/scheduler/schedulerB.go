@@ -14,20 +14,20 @@ type SchedulerMetadata struct {
 	ShouldPollFromQueue map[queue.QueueType]bool
 }
 
-type CustomScheduler struct {
+type SchedulerTypeB struct {
 	Id           int
 	TicketNumber int
 	Metadata     *SchedulerMetadata
 }
 
-func NewCustomScheduler(id int, metadata *SchedulerMetadata) (*CustomScheduler, error) {
-	return &CustomScheduler{
+func NewSchedulerTypeB(id int, metadata *SchedulerMetadata) (*SchedulerTypeB, error) {
+	return &SchedulerTypeB{
 		Id:       id,
 		Metadata: metadata,
 	}, nil
 }
 
-func (sc *CustomScheduler) AddQueueToScheduler(ctx context.Context, c interface{}) (*CustomScheduler, error) {
+func (sc *SchedulerTypeB) AddQueueToScheduler(ctx context.Context, c interface{}) (*SchedulerTypeB, error) {
 
 	return nil, nil
 }
@@ -43,7 +43,7 @@ func indexOf(queueType queue.QueueType) int {
 	return -1
 }
 
-func getQueueToPollFrom(sc *CustomScheduler) queue.QueueType {
+func getQueueToPollFrom(sc *SchedulerTypeB) queue.QueueType {
 
 	for _, qType := range customerAttendingOrder {
 		if sc.Metadata.ShouldPollFromQueue[qType] {
@@ -54,14 +54,14 @@ func getQueueToPollFrom(sc *CustomScheduler) queue.QueueType {
 	return ""
 }
 
-func (sc *CustomScheduler) updateScheduler(polledQ queue.QueueType) error {
+func (sc *SchedulerTypeB) updateScheduler(polledQ queue.QueueType) error {
 
 	index := indexOf(polledQ)
 	if index == -1 {
 		return fmt.Errorf("cannot find index of Queue")
 	}
 	if sc.Metadata.CurrentPollRemain[polledQ] == 0 {
-		// Update the count to full by 1 and set the polling to false
+		// Update the count to full  and set the polling to false
 		sc.Metadata.CurrentPollRemain[polledQ] = sc.Metadata.QueuePollRate[polledQ]
 		sc.Metadata.ShouldPollFromQueue[polledQ] = false
 
@@ -73,10 +73,8 @@ func (sc *CustomScheduler) updateScheduler(polledQ queue.QueueType) error {
 	return nil
 }
 
-func (sc *CustomScheduler) GetNextCustomer(ctx context.Context, queueMap map[queue.QueueType]*queue.Queue) (interface{}, error) {
-	// there should be only 1 queue to poll from
-	// Pop From Queue
-	// Update the Queue Metadata
+func (sc *SchedulerTypeB) GetNextCustomer(ctx context.Context, queueMap map[queue.QueueType]*queue.Queue) (*customer.Customer, error) {
+
 	var (
 		customer *customer.Customer
 		err      error
@@ -88,6 +86,30 @@ func (sc *CustomScheduler) GetNextCustomer(ctx context.Context, queueMap map[que
 	}
 
 	queue := queueMap[queueToPollFrom]
+
+	// if current queue is empty get from next queue ( doesnt make sense to make standard customers waiting )
+	if len(queue.Elements) == 0 {
+
+		// Poll from next available queue according to priority
+		i := indexOf(queueToPollFrom)
+		next_queue := (i + 1) % len(customerAttendingOrder)
+
+		for {
+			if next_queue == i {
+				return nil, fmt.Errorf("no customer to attend")
+			}
+
+			qType := customerAttendingOrder[next_queue]
+
+			if len(queueMap[qType].Elements) > 0 {
+				queue = queueMap[qType]
+				break
+			}
+
+			next_queue = (next_queue + 1) % len(customerAttendingOrder)
+		}
+	}
+
 	customer, err = queue.Pop()
 	if err != nil {
 		return nil, err
@@ -100,6 +122,6 @@ func (sc *CustomScheduler) GetNextCustomer(ctx context.Context, queueMap map[que
 	return customer, nil
 }
 
-func (sc *CustomScheduler) UpdateRate(ctx context.Context) int {
+func (sc *SchedulerTypeB) UpdateRate(ctx context.Context) int {
 	return 0
 }

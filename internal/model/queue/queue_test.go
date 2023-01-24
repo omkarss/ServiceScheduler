@@ -69,7 +69,7 @@ func TestPopFromQueue(t *testing.T) {
 
 	})
 
-	t.Run("Fails when tries to Pop from Emplty Queue", func(t *testing.T) {
+	t.Run("Fails when tries to Pop from Empty Queue", func(t *testing.T) {
 
 		q := getNewQueue(uuid.NewString(), queue.QueueTypeStandard)
 
