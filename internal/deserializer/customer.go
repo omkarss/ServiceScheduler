@@ -6,15 +6,16 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/go-playground/validator"
 	"github.com/omkar.sunthankar/servicescheduler/internal/model/customer"
 )
 
 func DeserializeCustomer(req *http.Request) (*customer.Customer, error) {
 	/*
 		{
-		    "FullName" : "Omkar",
-		    "PhoneNumber": "3159753059",
-		    "Type": "Priority"
+		    "fullName" : "Omkar",
+		    "phonenumber": "3159753059",
+		    "type": "Priority"
 		}
 	*/
 
@@ -24,13 +25,25 @@ func DeserializeCustomer(req *http.Request) (*customer.Customer, error) {
 	if err != nil {
 		return nil, err
 	}
-	json.Unmarshal(body, &c)
+
+	err = json.Unmarshal(body, &c)
+	if err != nil {
+		return nil, err
+	}
 
 	t, err := getType(c.Type)
 	if err != nil {
 		return nil, err
 	}
 
+	// Validate
+	v := validator.New()
+	er := v.Struct(c)
+	if er != nil {
+		for _, err := range er.(validator.ValidationErrors) {
+			return nil, fmt.Errorf("Error validating %s", err.Field())
+		}
+	}
 	c1 := &customer.Customer{
 		FullName:    c.FullName,
 		PhoneNumber: c.PhoneNumber,

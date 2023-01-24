@@ -13,15 +13,15 @@ const (
 )
 
 type CustomerMetadata struct {
-	TicketNumber int
-	Type         CustomerType
-	EntryTime    time.Time
+	TicketNumber int          `json:"TicketNumber" validate:"omitempty"`
+	Type         CustomerType `json:"Type" validate:"required" binding:"required"`
+	EntryTime    time.Time    `json:"EntryTime" validate:"omitempty"`
 }
 
 type Customer struct {
-	FullName    string
-	PhoneNumber string
-	Metadata    *CustomerMetadata
+	FullName    string            `json:"FullName" validate:"required" binding:"required"`
+	PhoneNumber string            `json:"PhoneNumber" validate:"required" binding:"required"`
+	Metadata    *CustomerMetadata `json:"Metadata" validate:"required" binding:"required"`
 }
 
 type CustomerI interface {

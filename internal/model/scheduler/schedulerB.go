@@ -3,6 +3,7 @@ package scheduler
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	"github.com/omkar.sunthankar/servicescheduler/internal/model/customer"
 	"github.com/omkar.sunthankar/servicescheduler/internal/model/queue"
@@ -18,12 +19,14 @@ type SchedulerTypeB struct {
 	Id           int
 	TicketNumber int
 	Metadata     *SchedulerMetadata
+	mutex        *sync.Mutex
 }
 
 func NewSchedulerTypeB(id int, metadata *SchedulerMetadata) (*SchedulerTypeB, error) {
 	return &SchedulerTypeB{
 		Id:       id,
 		Metadata: metadata,
+		mutex:    &sync.Mutex{},
 	}, nil
 }
 
@@ -80,6 +83,9 @@ func (sc *SchedulerTypeB) GetNextCustomer(ctx context.Context, queueMap map[queu
 		err      error
 	)
 
+	sc.mutex.Lock()
+	defer sc.mutex.Unlock()
+
 	queueToPollFrom := getQueueToPollFrom(sc)
 	if queueToPollFrom == "" {
 		return nil, fmt.Errorf("issue while polling from queue")
@@ -87,20 +93,19 @@ func (sc *SchedulerTypeB) GetNextCustomer(ctx context.Context, queueMap map[queu
 
 	queue := queueMap[queueToPollFrom]
 
-	// if current queue is empty get from next queue ( doesnt make sense to make standard customers waiting )
+	// Poll from next available queue according to priority.
 	if len(queue.Elements) == 0 {
 
-		// Poll from next available queue according to priority
 		i := indexOf(queueToPollFrom)
 		next_queue := (i + 1) % len(customerAttendingOrder)
 
+		// If no customer of present in current queue we try to poll from all possible queues according to priority
 		for {
 			if next_queue == i {
 				return nil, fmt.Errorf("no customer to attend")
 			}
 
 			qType := customerAttendingOrder[next_queue]
-
 			if len(queueMap[qType].Elements) > 0 {
 				queue = queueMap[qType]
 				break
@@ -114,14 +119,19 @@ func (sc *SchedulerTypeB) GetNextCustomer(ctx context.Context, queueMap map[queu
 	if err != nil {
 		return nil, err
 	}
-
-	// Decrease the poll by 1
+	// Decrease the poll by 1 .
 	sc.Metadata.CurrentPollRemain[queueToPollFrom] -= 1
 
-	sc.updateScheduler(queueToPollFrom)
+	err = sc.updateScheduler(queueToPollFrom)
+	if err != nil {
+		return nil, err
+	}
+
 	return customer, nil
 }
 
-func (sc *SchedulerTypeB) UpdateRate(ctx context.Context) int {
-	return 0
+// TODO: Update rate for particular Queue
+func (sc *SchedulerTypeB) UpdateRate(ctx context.Context) (int, error) {
+
+	return -1, fmt.Errorf("Not implemented")
 }

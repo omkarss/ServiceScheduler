@@ -17,9 +17,10 @@ func SerializeCustomer(customer *customer.Customer) ([]byte, error) {
 	*/
 
 	c := &Customer{
-		FullName:    customer.FullName,
-		PhoneNumber: customer.PhoneNumber,
-		Type:        string(customer.Metadata.Type),
+		FullName:     customer.FullName,
+		PhoneNumber:  customer.PhoneNumber,
+		Type:         string(customer.Metadata.Type),
+		TicketNumber: customer.Metadata.TicketNumber,
 	}
 
 	jsonC, err := json.Marshal(c)

@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"sync"
 
 	"github.com/gorilla/mux"
 	"github.com/omkar.sunthankar/servicescheduler/internal/model/queue"
@@ -11,20 +12,28 @@ import (
 
 type Server struct {
 	*mux.Router
+	mutex          *sync.Mutex
 	ctx            context.Context
-	logger         zap.Logger
+	Logger         *zap.SugaredLogger
 	SchedulerTypeA *scheduler.SchedulerTypeA
 	SchedulerTypeB *scheduler.SchedulerTypeB
 	Queue          map[queue.QueueType]*queue.Queue
 }
 
+func InitLogger() *zap.SugaredLogger {
+	logger, _ := zap.NewProduction()
+	return logger.Sugar()
+}
+
 func NewServer(vipScheduler *scheduler.SchedulerTypeA, SchedulerTypeB *scheduler.SchedulerTypeB, queue map[queue.QueueType]*queue.Queue) *Server {
 	s := &Server{
 		Router:         mux.NewRouter(),
+		mutex:          &sync.Mutex{},
 		ctx:            context.Background(),
 		SchedulerTypeA: vipScheduler,
 		SchedulerTypeB: SchedulerTypeB,
 		Queue:          queue,
+		Logger:         InitLogger(),
 	}
 	s.RegisterRoutes()
 	return s

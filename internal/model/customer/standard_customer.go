@@ -27,5 +27,4 @@ func NewStandardCustomer(ctx context.Context, fullName string, phoneNumber strin
 
 func (*StandardCustomer) GetDetails() (*StandardCustomer, error) {
 	return nil, fmt.Errorf("not implemented")
-
 }

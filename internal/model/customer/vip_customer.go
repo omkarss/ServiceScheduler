@@ -23,7 +23,6 @@ func NewVIPCustomer(ctx context.Context, fullName string, phoneNumber string, cu
 			},
 		},
 	}, nil
-
 }
 
 func (*VIPCustomer) GetDetails() (*VIPCustomer, error) {

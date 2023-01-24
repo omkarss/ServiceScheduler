@@ -27,24 +27,14 @@ type TestServerSuite struct {
 	server                   *server.Server
 }
 
-func getQueue(queueType queue.QueueType) *queue.Queue {
-	return &queue.Queue{
-		Id:       uuid.NewString(),
-		Elements: make(queue.CustomerQueue, 0),
-		Metadata: &queue.QueueMetadata{
-			Type: queueType,
-		},
-	}
-}
-
-func getStandardCustomer(name string, phoneNumber string, cType customer.CustomerType) *customer.StandardCustomer {
+func getStandardCustomer(name string, phoneNumber string, cType customer.CustomerType, ticketNumber int) *customer.StandardCustomer {
 
 	return &customer.StandardCustomer{
 		Customer: customer.Customer{
 			FullName:    name,
 			PhoneNumber: phoneNumber,
 			Metadata: &customer.CustomerMetadata{
-				TicketNumber: 1,
+				TicketNumber: ticketNumber,
 				Type:         customer.CustomerTypeStandard,
 				EntryTime:    time.Now().UTC(),
 			},
@@ -52,14 +42,14 @@ func getStandardCustomer(name string, phoneNumber string, cType customer.Custome
 	}
 }
 
-func getVIPCustomer(name string, phoneNumber string, cType customer.CustomerType) *customer.VIPCustomer {
+func getVIPCustomer(name string, phoneNumber string, cType customer.CustomerType, tNumber int) *customer.VIPCustomer {
 
 	return &customer.VIPCustomer{
 		Customer: customer.Customer{
 			FullName:    name,
 			PhoneNumber: phoneNumber,
 			Metadata: &customer.CustomerMetadata{
-				TicketNumber: 1,
+				TicketNumber: tNumber,
 				Type:         customer.CustomerTypeVIP,
 				EntryTime:    time.Now().UTC(),
 			},

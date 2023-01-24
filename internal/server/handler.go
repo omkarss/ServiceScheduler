@@ -23,7 +23,10 @@ func sendResponse(w http.ResponseWriter, res []byte) {
 
 /*
 
-This handler checks in customer in the queue
+Checks in Customer
+1. Creates a customer
+2. Adds customer to neccessary logical queue
+3. Returns the customer by serializing it
 
 */
 
@@ -33,15 +36,27 @@ func (s *Server) CheckInCustomer(w http.ResponseWriter, req *http.Request) {
 	var vc *customer.VIPCustomer
 	var sc *customer.StandardCustomer
 
+	s.Logger.Info("Deserializing request")
+
 	// Deserialize json and validate the input
 	c, err := deserializer.DeserializeCustomer(req)
 	if err != nil {
-		http.Error(w, "Bad Request: Invalid Request", http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("Bad Request: Invalid Request: %s", err), http.StatusInternalServerError)
 		return
 	}
 
+	s.Logger.Infof("Checking In customer %s", c.FullName)
+
 	switch c.Metadata.Type {
 	case customer.CustomerTypeStandard:
+		// Check if customer already present in the queue.
+		sq := s.Queue[queue.QueueTypeStandard]
+		customerExist := sq.Exists(c.FullName, c.PhoneNumber)
+		if customerExist {
+			http.Error(w, "Customer already present", http.StatusInternalServerError)
+			return
+		}
+
 		// Create a customer
 		sc, err = customer.NewStandardCustomer(s.ctx, c.FullName, c.PhoneNumber, customer.CustomerTypeStandard, s.SchedulerTypeA.GetNextTicketNumber(s.ctx))
 		if err != nil {
@@ -50,7 +65,6 @@ func (s *Server) CheckInCustomer(w http.ResponseWriter, req *http.Request) {
 		}
 
 		// Add to Queue
-		sq := s.Queue[queue.QueueTypeStandard]
 		sq.Add(&sc.Customer)
 
 		serializedCustomer, err := serializers.SerializeCustomer(&sc.Customer)
@@ -63,6 +77,13 @@ func (s *Server) CheckInCustomer(w http.ResponseWriter, req *http.Request) {
 
 	case customer.CustomerTypeVIP:
 
+		vq := s.Queue[queue.QueueTypePriority]
+		customerExist := vq.Exists(c.FullName, c.PhoneNumber)
+		if customerExist {
+			http.Error(w, "Customer already present", http.StatusInternalServerError)
+			return
+		}
+
 		// Create a customer
 		vc, err = customer.NewVIPCustomer(s.ctx, c.FullName, c.PhoneNumber, customer.CustomerTypeVIP, s.SchedulerTypeA.GetNextTicketNumber(s.ctx))
 		if err != nil {
@@ -71,13 +92,13 @@ func (s *Server) CheckInCustomer(w http.ResponseWriter, req *http.Request) {
 		}
 
 		// Add to Queue
-		sq := s.Queue[queue.QueueTypePriority]
-		sq.Add(&vc.Customer)
+		vq.Add(&vc.Customer)
 
 		// Serialize customer to json
 		serializedCustomer, err := serializers.SerializeCustomer(&vc.Customer)
 		if err != nil {
-
+			http.Error(w, "Error Serializing Response", http.StatusInternalServerError)
+			return
 		}
 		sendResponse(w, serializedCustomer)
 
@@ -85,9 +106,18 @@ func (s *Server) CheckInCustomer(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
+	s.Logger.Infof("Checked in the customer %s ", c.FullName)
 }
 
+/*
+Scheduler A is a Type A scheduler checks if customer is VIP if yes attends that customer else attends standard customer
+1. Uses mutex to make sure we dont attend two customers at the same time
+2. Returns  next customer
+*/
+
 func (s *Server) GetNextCustomerSchedulerA(w http.ResponseWriter, req *http.Request) {
+
+	s.Logger.Infof("Attending the customer ")
 
 	c, err := s.SchedulerTypeA.GetNextCustomer(s.ctx, s.Queue)
 	if err != nil {
@@ -95,16 +125,26 @@ func (s *Server) GetNextCustomerSchedulerA(w http.ResponseWriter, req *http.Requ
 		return
 	}
 
+	s.Logger.Infof("Done attending customer %s", c.FullName)
+
 	serializedCustomer, err := serializers.SerializeCustomer(c)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		http.Error(w, "Error Checking In a Customer", http.StatusInternalServerError)
+		http.Error(w, "Error Serializing response", http.StatusInternalServerError)
 		return
 	}
 	sendResponse(w, serializedCustomer)
+
 }
 
+/*
+Scheduler is a Type B scheduler which schedules VIP:Standard customer in ratio 2:1.
+In the case when VIP customers are not present and only standard customers are present they schedule standard customer
+*/
+
 func (s *Server) GetNextCustomerSchedulerB(w http.ResponseWriter, req *http.Request) {
+
+	s.Logger.Infof("Attending the customer for 10 seconds")
 
 	c, err := s.SchedulerTypeB.GetNextCustomer(s.ctx, s.Queue)
 	if err != nil {
@@ -112,10 +152,12 @@ func (s *Server) GetNextCustomerSchedulerB(w http.ResponseWriter, req *http.Requ
 		return
 	}
 
+	s.Logger.Infof("Done attending customer %s", c.FullName)
+
 	serializedCustomer, err := serializers.SerializeCustomer(c)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		http.Error(w, "Error Checking In a Customer", http.StatusInternalServerError)
+		http.Error(w, "Error Serializing response", http.StatusInternalServerError)
 		return
 	}
 	sendResponse(w, serializedCustomer)

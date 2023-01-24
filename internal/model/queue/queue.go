@@ -31,7 +31,6 @@ type QueueI interface {
 }
 
 func NewQueue(ctx context.Context, id string, qtype QueueType) (*Queue, error) {
-
 	return &Queue{
 		Id:       id,
 		Elements: make(CustomerQueue, 0),
@@ -50,7 +49,6 @@ func (q *Queue) Add(c *customer.Customer) {
 }
 
 func (q *Queue) Pop() (c *customer.Customer, err error) {
-
 	currQueue := q.Elements
 	len := len(currQueue)
 	if len == 0 {
@@ -65,4 +63,14 @@ func (q *Queue) Pop() (c *customer.Customer, err error) {
 
 func (q *Queue) Len() int {
 	return len(q.Elements)
+}
+
+func (q *Queue) Exists(fullName string, phoneNumber string) bool {
+	for _, customer := range q.Elements {
+		if customer.FullName == fullName && customer.PhoneNumber == phoneNumber {
+			return true
+		}
+	}
+
+	return false
 }

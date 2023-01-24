@@ -1,6 +1,5 @@
-
 test:
-	go test ./...
+	go clean -testcache && go test ./...
 
 start:
 	go run cmd/main/main.go
@@ -8,5 +7,4 @@ start:
 dep:
 	go mod download
 
-lint:
-	golangci-lint run --enable-all
+all: dep start
