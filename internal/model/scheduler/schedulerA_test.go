@@ -58,7 +58,7 @@ func (s *SchedulerSuite) TestSchedulerAGetNextCustomer() {
 
 		r.NoError(err)
 		r.Equal(c2.FullName, expectedC.FullName)
-
+		r.Equal(0, len(s.queues[queue.QueueTypePriority].Elements))
 	})
 
 	s.T().Run("Gets a customer from standard when vip queue has no customers", func(t *testing.T) {
@@ -74,6 +74,7 @@ func (s *SchedulerSuite) TestSchedulerAGetNextCustomer() {
 
 		r.NoError(err)
 		r.Equal(c1.FullName, expectedC.FullName)
+		r.Equal(0, len(s.queues[queue.QueueTypeStandard].Elements))
 	})
 
 	s.T().Run("does not schedule when there is no customer to poll ", func(t *testing.T) {

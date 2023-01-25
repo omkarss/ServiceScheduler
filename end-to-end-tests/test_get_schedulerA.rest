@@ -19,6 +19,17 @@ Content-Type: application/json
 	"Type":        "Priority"
 }
 
+###
+POST http://localhost:8080/check-in-customer
+Content-Type: application/json
+
+{
+   	"FullName":    "D",
+	"PhoneNumber": "xxxxx",
+	"Type":        "Standard"
+}
+###
+GET http://localhost:8080/get-next-customer-schedulerA
 
 ###
 POST http://localhost:8080/check-in-customer
@@ -28,16 +39,6 @@ Content-Type: application/json
    	"FullName":    "C",
 	"PhoneNumber": "xxxxx",
 	"Type":        "Priority"
-}
-
-###
-POST http://localhost:8080/check-in-customer
-Content-Type: application/json
-
-{
-   	"FullName":    "D",
-	"PhoneNumber": "xxxxx",
-	"Type":        "Standard"
 }
 
 ###

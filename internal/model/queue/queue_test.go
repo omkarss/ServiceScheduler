@@ -100,12 +100,13 @@ func TestPopFromQueue(t *testing.T) {
 		q := getNewQueue(uuid.NewString(), queue.QueueTypeStandard)
 
 		q.Add(c1)
+		q1 := *q
 		assert.Equal(t, len(q.Elements), 1)
 
-		expectedC, _ := q.Pop()
+		expectedC, _ := q1.Pop()
 
 		// Assertions
-		assert.Equal(t, len(q.Elements), 0)
+		assert.Equal(t, 0, len(q1.Elements))
 		assert.Equal(t, expectedC.FullName, "Omkar")
 		assert.Equal(t, expectedC.PhoneNumber, "xxxx")
 

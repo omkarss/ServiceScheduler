@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/omkar.sunthankar/servicescheduler/internal/model/customer"
 	"github.com/omkar.sunthankar/servicescheduler/internal/model/queue"
@@ -47,20 +48,23 @@ func (sc *SchedulerTypeA) GetNextCustomer(ctx context.Context, queueMap map[queu
 	defer sc.mutex.Unlock()
 
 	// Try to get from VIP queue , if no one present get from standard queue.
-	sq := queueMap[queue.QueueTypeStandard]
-	pq := queueMap[queue.QueueTypePriority]
+	sq := *queueMap[queue.QueueTypeStandard]
+	pq := *queueMap[queue.QueueTypePriority]
 
 	if len(pq.Elements) > 0 || len(sq.Elements) > 0 {
+		time.Sleep(5 * time.Second)
 		if len(pq.Elements) > 0 {
 			c, err = pq.Pop()
 			if err != nil {
 				return nil, err
 			}
+			queueMap[queue.QueueTypePriority] = &pq
 		} else if len(sq.Elements) > 0 {
 			c, err = sq.Pop()
 			if err != nil {
 				return nil, err
 			}
+			queueMap[queue.QueueTypeStandard] = &sq
 		}
 	} else {
 		return nil, fmt.Errorf("no customer available to attend")
