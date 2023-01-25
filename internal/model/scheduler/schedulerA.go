@@ -51,19 +51,24 @@ func (sc *SchedulerTypeA) GetNextCustomer(ctx context.Context, queueMap map[queu
 	sq := *queueMap[queue.QueueTypeStandard]
 	pq := *queueMap[queue.QueueTypePriority]
 
+	// Sleep for some time
+	time.Sleep(4 * time.Second)
+
 	if len(pq.Elements) > 0 || len(sq.Elements) > 0 {
-		time.Sleep(5 * time.Second)
 		if len(pq.Elements) > 0 {
 			c, err = pq.Pop()
 			if err != nil {
 				return nil, err
 			}
+			// Reassign the queue
 			queueMap[queue.QueueTypePriority] = &pq
+
 		} else if len(sq.Elements) > 0 {
 			c, err = sq.Pop()
 			if err != nil {
 				return nil, err
 			}
+			// Reassign the queue
 			queueMap[queue.QueueTypeStandard] = &sq
 		}
 	} else {

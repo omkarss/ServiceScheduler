@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/omkar.sunthankar/servicescheduler/internal/model/customer"
 	"github.com/omkar.sunthankar/servicescheduler/internal/model/queue"
@@ -90,9 +91,9 @@ func (sc *SchedulerTypeB) GetNextCustomer(ctx context.Context, queueMap map[queu
 	if queueToPollFrom == "" {
 		return nil, fmt.Errorf("issue while polling from queue")
 	}
+	queue := *queueMap[queueToPollFrom]
 
-	queue := queueMap[queueToPollFrom]
-
+	time.Sleep(2 * time.Second)
 	// Poll from next available queue according to priority.
 	if len(queue.Elements) == 0 {
 
@@ -105,9 +106,9 @@ func (sc *SchedulerTypeB) GetNextCustomer(ctx context.Context, queueMap map[queu
 				return nil, fmt.Errorf("no customer to attend")
 			}
 
-			qType := customerAttendingOrder[next_queue]
-			if len(queueMap[qType].Elements) > 0 {
-				queue = queueMap[qType]
+			queueToPollFrom = customerAttendingOrder[next_queue]
+			if len(queueMap[queueToPollFrom].Elements) > 0 {
+				queue = *queueMap[queueToPollFrom]
 				break
 			}
 
@@ -119,6 +120,8 @@ func (sc *SchedulerTypeB) GetNextCustomer(ctx context.Context, queueMap map[queu
 	if err != nil {
 		return nil, err
 	}
+	queueMap[queueToPollFrom] = &queue
+
 	// Decrease the poll by 1 .
 	sc.Metadata.CurrentPollRemain[queueToPollFrom] -= 1
 
